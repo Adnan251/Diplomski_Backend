@@ -20,7 +20,3 @@ app.use("/api/users", userRoutes);
 app.listen(process.env.PORT, () => {
     console.log("PORT: " + process.env.PORT);
 });
-
-app.get('/', (req, res) => {
-    res.send("Hello World!");
-})

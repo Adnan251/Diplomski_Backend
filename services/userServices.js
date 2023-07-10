@@ -1,4 +1,4 @@
-const bcryptjs = require('bcrypt');
+const bcryptjs = require('bcryptjs');
 const Users = require('../models/Users.js');
 
 async function register (req, res, next){
