@@ -1,0 +1,44 @@
+const mongoose = require('mongoose');
+const bcryptjs = require('bcryptjs');
+const cryptoJS = require("crypto-js");
+
+require('dotenv').config();
+
+const HouseSchema = new mongoose.Schema({
+    house_name: {
+        type: String,
+        required: [true, 'Username can\'t be empty'],
+        minlength: 5,
+        maxlength: 25,
+        trim: true
+    },
+    address:{
+        type: String,
+        trim: true
+    },
+    password:{
+        type: String,
+        required: [true, 'Password can\'t be empty'],
+
+    },
+    users_id:{
+        type: Schema.Types.ObjectId,
+        ref: 'Users'
+    },
+    createdAt: {
+        type: Date
+    }
+});
+
+HouseSchema.pre('save', async function () {
+    const salt = await bcryptjs.genSalt(10);
+    this.password = await bcryptjs.hash(this.password, salt);
+    this.address = cryptoJS.AES.encrypt(sec.base32, process.env.CRYPTO_SECRET).toString();
+    this.createdAt = new Date().toISOString();
+});
+
+UserSchema.methods.comparePassword = async function (pass) {
+    return await bcryptjs.compare(pass, this.password);
+};
+
+module.exports = mongoose.model("Houses", HouseSchema);
