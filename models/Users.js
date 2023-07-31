@@ -33,15 +33,6 @@ const UserSchema = new mongoose.Schema({
         },
         select: false
     },
-    mfa_key:{
-        type: String,
-        trim: true,
-        select: false
-    },
-    mfa_activity:{
-        type: Boolean,
-        default: false
-    },
     createdAt: {
         type: Date,
         unique: true
@@ -49,8 +40,6 @@ const UserSchema = new mongoose.Schema({
 });
 
 UserSchema.pre('save', async function () {
-    var sec = speakeasy.generateSecret();
-    this.mfa_key = cryptoJS.AES.encrypt(sec.base32, process.env.CRYPTO_SECRET).toString();
     const salt = await bcryptjs.genSalt(10);
     this.password = await bcryptjs.hash(this.password, salt);
     this.createdAt = new Date().toISOString();

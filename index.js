@@ -1,9 +1,9 @@
 const express = require("express");
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const dotenv = require("dotenv").config();
 const authJWT = require('./middleware/authJWT')
 const userRoutes = require('./routes/userRoutes');
+require('dotenv').config();
 
 const app = express();
 
