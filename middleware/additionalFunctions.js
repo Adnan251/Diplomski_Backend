@@ -1,6 +1,7 @@
 require('dotenv').config();
 const crypto = require('crypto');
 const axios = require("axios");
+const jwt = require('jsonwebtoken');
 
 async function isPasswordPwned(password){
     const hashPass = crypto.createHash('sha1').update(password).digest('hex');

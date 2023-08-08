@@ -33,6 +33,10 @@ const UserSchema = new mongoose.Schema({
         },
         select: false
     },
+    mfa_secret: {
+        type: String,
+        select: false
+    },
     createdAt: {
         type: Date,
         unique: true

@@ -3,7 +3,13 @@ const bcryptjs = require('bcryptjs');
 
 require('dotenv').config();
 
-const DeviceSchema = new mongoose.Schema({
+const Schema = mongoose.Schema;
+
+const DeviceSchema = new Schema({
+    device_name:{
+        type: String,
+        trim: true
+    },
     host: {
         type: String,
         trim: true
@@ -16,23 +22,15 @@ const DeviceSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
-    room_ids: [{
+    room_id: {
         type: Schema.Types.ObjectId,
         ref: 'Rooms'
-    }],
+    },
     password: {
-        type: Date,
-        unique: true
+        type: String,
+        trim: true
     }
 });
 
-HouseSchema.pre('save', async function () {
-    const salt = await bcryptjs.genSalt(10);
-    this.password = await bcryptjs.hash(this.password, salt);
-});
-
-UserSchema.methods.comparePassword = async function (pass) {
-    return await bcryptjs.compare(pass, this.password);
-};
 
 module.exports = mongoose.model("Devices", DeviceSchema);

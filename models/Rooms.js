@@ -2,10 +2,16 @@ const mongoose = require('mongoose');
 
 require('dotenv').config();
 
-const RoomSchema = new mongoose.Schema({
+const Schema = mongoose.Schema;
+
+const RoomSchema = new Schema({
     room_name: {
         type: String,
         required: [true, 'Username can\'t be empty'],
+        trim: true
+    },
+    room_type:{
+        type: String,
         trim: true
     },
     floor:{
@@ -21,7 +27,7 @@ const RoomSchema = new mongoose.Schema({
     }
 });
 
-HouseSchema.pre('save', async function () {
+RoomSchema.pre('save', async function () {
     this.createdAt = new Date().toISOString();
 });
 
