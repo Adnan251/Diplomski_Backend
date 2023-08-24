@@ -85,23 +85,25 @@ async function update(req, res, next) {
 async function delet(req, res, next) {
     const userId = getUserIdFromToken(req);
     try {
-        const roomsToDelete = await Room.find({ house_id: req.body.id });
-        if (roomsToDelete.length > 0) {
-            await Room.deleteMany({ house_id: req.body.id });
+        if (house.comparePassword(req.body.password)){
+            const roomsToDelete = await Room.find({ house_id: req.body.id });
+            if (roomsToDelete.length > 0) {
+                await Room.deleteMany({ house_id: req.body.id });
 
-            const roomIdsToDelete = roomsToDelete.map((room) => room._id);
-            const devicesToDelete = await Device.find({ room_id: { $in: roomIdsToDelete } });
+                const roomIdsToDelete = roomsToDelete.map((room) => room._id);
+                const devicesToDelete = await Device.find({ room_id: { $in: roomIdsToDelete } });
 
-            if (devicesToDelete.length > 0) {
-                await Device.deleteMany({ room_id: { $in: roomIdsToDelete } });
+                if (devicesToDelete.length > 0) {
+                    await Device.deleteMany({ room_id: { $in: roomIdsToDelete } });
+                }
             }
+
+            await House.findOneAndDelete({ _id: req.body.id});
+            const houses = await House.find({ users_id: userId }).lean();
+
+            log.logAction(userId, "200", "House Has Been Deleted", `House: ${req.body.id}` );
+            res.status(200).json({message: "Hosue Deleted Succesfuly", houses});
         }
-
-        await House.findOneAndDelete({ _id: req.body.id});
-        const houses = await House.find({ users_id: userId }).lean();
-
-        log.logAction(userId, "200", "House Has Been Deleted", `House: ${req.body.id}` );
-        res.status(200).json({message: "Hosue Deleted Succesfuly", houses});
     } catch (error) {
         log.logAction(userId, "500", "Error While Deleting A House", `House: ${req.body.id}` );
         res.status(500).json({ error: 'Error Deleting A House' });

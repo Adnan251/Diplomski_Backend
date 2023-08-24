@@ -10,6 +10,10 @@ const DeviceSchema = new Schema({
         type: String,
         trim: true
     },
+    topic:{
+        type: String,
+        trim: true
+    },
     host: {
         type: String,
         trim: true
@@ -18,7 +22,7 @@ const DeviceSchema = new Schema({
         type: String,
         trim: true
     },
-    username:{
+    type:{
         type: String,
         trim: true
     },
@@ -26,9 +30,9 @@ const DeviceSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'Rooms'
     },
-    password: {
+    status: {
         type: String,
-        trim: true
+        trim: true,
     }
 });
 

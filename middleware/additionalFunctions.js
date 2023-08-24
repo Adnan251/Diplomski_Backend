@@ -23,7 +23,7 @@ async function isPasswordPwned(password){
         console.error('Error check password in HIBP: ', error);
         return -1;
     }
-}
+};
 
 const addFunct = {
   isPasswordPwned,

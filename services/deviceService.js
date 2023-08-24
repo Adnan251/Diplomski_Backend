@@ -1,6 +1,9 @@
 const Device = require('../models/Devices');
+const Room = require('../models/Rooms');
+const House = require('../models/Houses');
 const jwt = require('jsonwebtoken');
 const log = require("./logService");
+const mqtt = require('mqtt');
 
 function getUserIdFromToken(req) {
     const authHeader = req.headers['authorization'];
@@ -12,12 +15,22 @@ function getUserIdFromToken(req) {
 async function add(req, res, next) {
     const userId = getUserIdFromToken(req);
     try {
+        var house = await House.findById( req.body.house_id);
+        var room = await Room.findById( req.body.room_id);
+
+        var house_name = house.house_name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+        var room_name = room.room_name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+        var device_name = req.body.device_name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+
+        const topic = `${house_name}/${room_name}/${device_name}`;
+
         const device = await Device.create({
             device_name: req.body.device_name,
+            topic: topic,
             host: req.body.host,
             port: req.body.port,
-            username: req.body.username,
-            password: req.body.password,
+            type: req.body.type,
+            status: req.body.status,
             room_id: req.body.room_id
         });
 
@@ -29,13 +42,87 @@ async function add(req, res, next) {
         log.logAction(userId, "500", "Error While Adding A Device" );
         res.status(500).json({ error: 'Error Creating Device' });
     }
+};
+
+async function sendMessage(req, res, next) {
+    const userId = getUserIdFromToken(req);
+    try {
+        const device = await Device.findById(req.body.device_id);
+        const client = mqtt.connect(`mqtt://${device.host}:${device.port}`);
+
+        client.on('connect', () => {
+        
+            client.publish(device.topic, req.body.message, (error) => {
+                if (error) {
+                    console.error('Error publishing to:', error);
+                    client.end();
+                    return res.status(400).json({ message: 'Error Publishing' });
+                }
+            });
+            
+            client.subscribe("backend", (error) => {
+                if (error) {
+                    client.end();
+                    log.logAction(userId, "500", `Could not connect to device`, `Device: ${req.body.id}`);
+                    return res.status(500).json({ message: 'Error subscribing' });
+                }
+            
+
+            client.on('message', (topic, message) => {
+    
+                const responseData = message.toString();
+                log.logAction(userId, "200", `Successfuly connected a Device`, `Device: ${req.body.id}`);
+                return res.json({ message: 'Success', device ,response: responseData });
+            });
+        });
+    
+            log.logAction(userId, "200", `${req.body.message} message sent to Device`, `Device: ${req.body.id}` );
+            return res.status(200).json({message: "Success"});
+        });
+    } catch (err) {
+        log.logAction(userId, "500", `Something went wrong while sending a message`, `Device: ${req.body.id}` );
+        res.status(500).json({ error: 'Error Sending Message' });
+    }
 }
 
 async function getOne(req, res, next){
+    const userId = getUserIdFromToken(req);
     try{
-        const device = await Device.find({_id: req.body.id});
-        res.status(200).json(device);
+        const device = await Device.findById(req.body.id);
+
+        const client = mqtt.connect(`mqtt://${device.host}:${device.port}`);
+
+        client.on('connect', () => {
+            client.publish(device.topic, device.status);
+
+            client.subscribe("backend", (error) => {
+                if (error) {
+                    client.end();
+                    log.logAction(userId, "500", `Could not connect to device`, `Device: ${req.body.id}`);
+                    return res.status(500).json({ message: 'Error subscribing' });
+                }
+            });
+        });
+
+        client.on('message', (topic, message) => {
+            
+            const responseData = message.toString();
+            log.logAction(userId, "200", `Successfuly connected a Device`, `Device: ${req.body.id}`);
+            return res.json({ message: 'Success', device ,response: responseData });
+        });
+
+        client.on('error', (error) => {
+            console.error('MQTT error:', error);
+            client.end();
+            log.logAction(userId, "500", `MQTT error`, `Device: ${req.body.id}`);
+            return res.status(500).json({ message: 'MQTT error' });
+        });
+
+        log.logAction(userId, "200", `Successfuly connected a Device`, `Device: ${req.body.id}`);
+        return res.json({ message: 'Success', device});
+
     } catch (error){
+        log.logAction(userId, "500", `Error Getting Device`, `Device: ${req.body.id}`);
         res.status(500).json({error: 'Error Getting Single Device'});
     }
 }
@@ -87,4 +174,5 @@ module.exports = {
   getAll,
   update,
   delet,
+  sendMessage,
 };

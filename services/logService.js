@@ -41,7 +41,7 @@ async function logAction(user_id, status, message, device) {
     } catch (error) {
         console.error('Error saving log');
     }
-}
+};
 
 function parseDate(dateString) {
     const parts = dateString.split('.');
@@ -51,7 +51,7 @@ function parseDate(dateString) {
         const year = parseInt(parts[2], 10);
         return new Date(year, month, day);
     }
-}
+};
 
 async function getAll(req, res, next) {
     try {
@@ -78,7 +78,7 @@ async function getAll(req, res, next) {
     } catch (error) {
         res.status(500).json({ error: 'Error Getting Logs' });
     }
-}
+};
 
 module.exports = {
   logAction,

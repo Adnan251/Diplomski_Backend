@@ -2,8 +2,6 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const bcryptjs = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const cryptoJS = require("crypto-js");
-const speakeasy = require('speakeasy');
 
 require('dotenv').config();
 
@@ -31,10 +29,6 @@ const UserSchema = new mongoose.Schema({
             validator: validator.isStrongPassword,
             message: 'Valid password'
         },
-        select: false
-    },
-    mfa_secret: {
-        type: String,
         select: false
     },
     createdAt: {

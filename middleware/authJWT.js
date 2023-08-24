@@ -4,7 +4,6 @@ require('dotenv').config();
 function verifyUserToken(req, res, next) {
   const users = '/api/users';
   if (req.path === '/' || req.path === users + '/login' || req.path === users + '/register') return next();
-
   const authHeader = req.headers['authorization'];
 
   if (!authHeader) {
@@ -15,7 +14,7 @@ function verifyUserToken(req, res, next) {
   
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.userId = decoded.userId;
+    req.user_id = decoded.user_id;
     next();
   } catch (error) {
     if (error.name === 'TokenExpiredError') {

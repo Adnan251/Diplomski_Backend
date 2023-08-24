@@ -57,8 +57,10 @@ async function update(req, res, next) {
             { new: true }
         );
 
+        var allRooms = await Room.find({house_id:req.body.house_id})
+
         log.logAction(userId, "200", "Room Updated", `Room: ${req.body.id}`);
-        res.status(200).json({message:"Room Updated succesfuly", updateRoom});
+        res.status(200).json({message:"Room Updated succesfuly", allRooms});
     } catch (error) {
         log.logAction(userId, "500", "Error Trying to Update A Room", `Room: ${req.body.id}`);
         res.status(500).json({ error: 'Error Updating The Room' });
@@ -75,7 +77,7 @@ async function delet(req, res, next) {
         }
         await Room.findOneAndDelete({ _id: req.body.id });
 
-        const rooms = await Room.find({house_id:req.body.house_id})
+        const rooms = await Room.find({house_id:req.body.id})
 
         log.logAction(userId, "200", "Room Deleted Succesfuly", `Room: ${req.body.id}`);
         res.status(200).json({message: "Room Deleted Succesfuly", rooms});
