@@ -46,9 +46,10 @@ async function add(req, res, next) {
 
 async function sendMessage(req, res, next) {
     const userId = getUserIdFromToken(req);
+    let responseData;
     try {
         const device = await Device.findById(req.body.device_id);
-        const client = mqtt.connect(`mqtt://${device.host}:${device.port}`);
+        const client = mqtt.connect(`mqtt://${process.env.MQTT_HOST}:${process.env.MQTT_PORT}`);
 
         client.on('connect', () => {
         
@@ -59,25 +60,29 @@ async function sendMessage(req, res, next) {
                     return res.status(400).json({ message: 'Error Publishing' });
                 }
             });
-            
-            client.subscribe("backend", (error) => {
-                if (error) {
-                    client.end();
-                    log.logAction(userId, "500", `Could not connect to device`, `Device: ${req.body.id}`);
-                    return res.status(500).json({ message: 'Error subscribing' });
-                }
-            
+            if(req.body.message === "read"){
+                client.subscribe("backend", (error) => {
+                    console.log("success subs")
+                    if (error) {
+                        client.end();
+                        console.log("error")
+                        return res.status(500).json({ message: 'Error subscribing' });
+                    }
+                
+                
+                    client.on('message', (topic, message) => {
+                        responseData = message.toString();
+                        console.log(responseData);
+                        return res.status(200).json({ message: 'Success',response: responseData });
 
-            client.on('message', (topic, message) => {
-    
-                const responseData = message.toString();
-                log.logAction(userId, "200", `Successfuly connected a Device`, `Device: ${req.body.id}`);
-                return res.json({ message: 'Success', device ,response: responseData });
-            });
-        });
+                    });
+                });
+            }
+            else{
+                return res.status(200).json({ message: 'Success'});
+            }
     
             log.logAction(userId, "200", `${req.body.message} message sent to Device`, `Device: ${req.body.id}` );
-            return res.status(200).json({message: "Success"});
         });
     } catch (err) {
         log.logAction(userId, "500", `Something went wrong while sending a message`, `Device: ${req.body.id}` );
@@ -90,7 +95,7 @@ async function getOne(req, res, next){
     try{
         const device = await Device.findById(req.body.id);
 
-        const client = mqtt.connect(`mqtt://${device.host}:${device.port}`);
+        const client = mqtt.connect(`mqtt://${process.env.MQTT_HOST}:${process.env.MQTT_PORT}`);
 
         client.on('connect', () => {
             client.publish(device.topic, device.status);

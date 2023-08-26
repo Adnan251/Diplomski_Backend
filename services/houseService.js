@@ -85,6 +85,7 @@ async function update(req, res, next) {
 async function delet(req, res, next) {
     const userId = getUserIdFromToken(req);
     try {
+        let house = await House.findOne({_id: req.body.id}).select('+password');
         if (house.comparePassword(req.body.password)){
             const roomsToDelete = await Room.find({ house_id: req.body.id });
             if (roomsToDelete.length > 0) {
