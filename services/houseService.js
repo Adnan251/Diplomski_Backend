@@ -61,7 +61,7 @@ async function update(req, res, next) {
     try {
 
         let house = await House.findOne({_id: req.body.id}).select('+password');
-        if (house.comparePassword(req.body.password)){
+        if (await house.comparePassword(req.body.password)){
             delete req.body.password;
             house = await House.findOneAndUpdate(
             { _id: req.body.id, users_id: userId },
@@ -86,7 +86,7 @@ async function delet(req, res, next) {
     const userId = getUserIdFromToken(req);
     try {
         let house = await House.findOne({_id: req.body.id}).select('+password');
-        if (house.comparePassword(req.body.password)){
+        if (await house.comparePassword(req.body.password)){
             const roomsToDelete = await Room.find({ house_id: req.body.id });
             if (roomsToDelete.length > 0) {
                 await Room.deleteMany({ house_id: req.body.id });
@@ -104,6 +104,10 @@ async function delet(req, res, next) {
 
             log.logAction(userId, "200", "House Has Been Deleted", `House: ${req.body.id}` );
             res.status(200).json({message: "Hosue Deleted Succesfuly", houses});
+        }
+        else{
+            log.logAction(userId, "400", "Wrong House Password, Deletion Failed", `House: ${req.body.id}` );
+            res.status(400).json({message: "Hosue Deletion Failed", houses});
         }
     } catch (error) {
         log.logAction(userId, "500", "Error While Deleting A House", `House: ${req.body.id}` );
